@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface StatCard {
@@ -19,23 +19,90 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const statCards: StatCard[] = [
-    { id: "1", title: "Total Cows", value: 27, color: "yellow" },
-    { id: "2", title: "Milking Cows", value: 18, color: "orange" },
-    { id: "3", title: "kgs Av.Milk/Cow", value: 20, color: "yellow" },
-    { id: "4", title: "Dry Cows", value: 27, color: "orange" },
+    { id: "1", title: "Total Cows 🐄", value: 27, color: "yellow" },
+    { id: "2", title: "Milking Cows 🥛", value: 18, color: "orange" },
+    { id: "3", title: "Avg Milk (kgs) 🧾", value: 20, color: "yellow" },
+    { id: "4", title: "Dry Cows 🌾", value: 27, color: "orange" },
   ];
 
   const fertilityItems: FertilityItem[] = [
-    { id: "1", label: "Open Cows", count: 12 },
-    { id: "2", label: "Pregnant Cows", count: 3 },
-    { id: "3", label: "Lacting Cows", count: 4 },
-    { id: "4", label: "Estrous Cows", count: 1 },
-    { id: "5", label: "Dry Cows", count: 2 },
-    { id: "6", label: "On Treatment", count: 5 },
+    { id: "1", label: "Open Cows 🔓", count: 12 },
+    { id: "2", label: "Pregnant Cows 🤰", count: 3 },
+    { id: "3", label: "Lactating Cows 🍼", count: 4 },
+    { id: "4", label: "Estrous Cows 🔁", count: 1 },
+    { id: "5", label: "Dry Cows 🌾", count: 2 },
+    { id: "6", label: "On Treatment 💊", count: 5 },
   ];
 
   const getColorClasses = (color: "yellow" | "orange") => {
     return color === "yellow" ? "bg-yellow-400" : "bg-orange-400";
+  };
+
+  // Live-like dummy data for Cattle Health card
+  const [temperature, setTemperature] = useState<number>(38.5);
+  const [heartRate, setHeartRate] = useState<number>(72);
+  const [activity, setActivity] = useState<string>("Grazing");
+  const [status, setStatus] = useState<"Normal" | "Alert" | "Critical">(
+    "Normal"
+  );
+  const [lastUpdated, setLastUpdated] = useState<string>(() =>
+    new Date().toLocaleTimeString()
+  );
+  const [tempHistory, setTempHistory] = useState<number[]>(() => {
+    const base = 38.0;
+    return Array.from({ length: 12 }, () => base + Math.random() * 1.2 - 0.6);
+  });
+
+  useEffect(() => {
+    const activities = ["Grazing", "Resting", "Walking", "Feeding"];
+    const id = setInterval(() => {
+      setTemperature((prev) => {
+        const next = +(prev + (Math.random() * 0.6 - 0.3)).toFixed(1);
+        setTempHistory((p) => [...p.slice(-11), next]);
+        return next;
+      });
+
+      setHeartRate((prev) => {
+        const next = Math.max(40, Math.round(prev + (Math.random() * 6 - 3)));
+        return next;
+      });
+
+      setActivity(activities[Math.floor(Math.random() * activities.length)]);
+
+      // derive status from latest values after small timeout to ensure both updated
+      setTimeout(() => {
+        const t = temperature;
+        const hr = heartRate;
+        const newStatus =
+          t > 40 || hr > 110
+            ? "Critical"
+            : t > 39.2 || hr > 90
+            ? "Alert"
+            : "Normal";
+        setStatus(newStatus);
+        setLastUpdated(new Date().toLocaleTimeString());
+      }, 50);
+    }, 3000);
+
+    return () => clearInterval(id);
+    // intentionally omit deps to keep interval behavior predictable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const refreshNow = () => {
+    const t = +(38 + Math.random() * 2).toFixed(1);
+    const hr = Math.round(60 + Math.random() * 60);
+    setTemperature(t);
+    setHeartRate(hr);
+    setTempHistory((p) => [...p.slice(-11), t]);
+    const newStatus =
+      t > 40 || hr > 110
+        ? "Critical"
+        : t > 39.2 || hr > 90
+        ? "Alert"
+        : "Normal";
+    setStatus(newStatus);
+    setLastUpdated(new Date().toLocaleTimeString());
   };
 
   return (
@@ -60,7 +127,7 @@ const Dashboard: React.FC = () => {
                   />
                 </svg>
               </button>
-              <h1 className="text-xl font-bold text-gray-800">PASHUMITRA</h1>
+              <h1 className="text-xl font-bold text-gray-800">🐄 PASHUMITRA</h1>
             </div>
             <nav className="flex items-center space-x-6">
               <button
@@ -156,7 +223,7 @@ const Dashboard: React.FC = () => {
           {/* Fertility Summary */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              Fertility Summary
+              Fertility Summary 🧭
             </h3>
             <div className="grid grid-cols-3 gap-4 mb-6">
               {fertilityItems.map((item) => (
@@ -177,10 +244,94 @@ const Dashboard: React.FC = () => {
           {/* Cattle Health */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              Cattle Health
+              Cattle Health ❤️‍🩹
             </h3>
-            <div className="text-center text-gray-500 py-12">
-              <p>Content will be loaded here</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+              <div>
+                <div className="flex items-center space-x-3">
+                  <div className="text-sm text-gray-500">Cow ID</div>
+                  <div className="text-lg font-bold">#C-1024</div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div className="p-3 bg-yellow-50 rounded-lg text-center">
+                    <div className="text-xs text-gray-500">🌡️</div>
+                    <div className="text-sm font-semibold text-gray-800">
+                      {temperature.toFixed(1)}°C
+                    </div>
+                    <div className="text-xs text-gray-500">Temperature</div>
+                  </div>
+
+                  <div className="p-3 bg-red-50 rounded-lg text-center">
+                    <div className="text-xs text-gray-500">❤️</div>
+                    <div className="text-sm font-semibold text-gray-800">
+                      {heartRate}
+                    </div>
+                    <div className="text-xs text-gray-500">bpm</div>
+                  </div>
+
+                  <div className="p-3 bg-green-50 rounded-lg text-center">
+                    <div className="text-xs text-gray-500">⚡</div>
+                    <div className="text-sm font-semibold text-gray-800">
+                      {activity}
+                    </div>
+                    <div className="text-xs text-gray-500">Activity</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <div
+                  className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full mt-1 text-sm font-medium ${
+                    status === "Normal"
+                      ? "bg-green-100 text-green-800"
+                      : status === "Alert"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  <span>
+                    {status === "Normal"
+                      ? "✅"
+                      : status === "Alert"
+                      ? "⚠️"
+                      : "❗"}
+                  </span>
+                  <span>{status}</span>
+                </div>
+
+                <div className="mt-4">
+                  <div className="text-xs text-gray-500">Last Updated</div>
+                  <div className="text-sm text-gray-600">{lastUpdated}</div>
+                </div>
+
+                <button
+                  onClick={refreshNow}
+                  className="mt-4 bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors inline-flex items-center space-x-2"
+                >
+                  <span>🔁</span>
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <div className="text-xs text-gray-500 mb-2">
+                Live Temperature (last 12 points)
+              </div>
+              <div className="flex items-end h-24 space-x-1">
+                {tempHistory.map((t, i) => (
+                  <div
+                    key={i}
+                    title={`${t.toFixed(1)}°C`}
+                    className="bg-yellow-400 rounded-sm"
+                    style={{
+                      width: 8,
+                      height: `${Math.max(4, Math.min(100, (t - 35) * 50))}%`,
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
